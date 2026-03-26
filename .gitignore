@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual envs
+.venv/
+venv/
+
+# macOS
+.DS_Store
+
+# Game app and large runtime assets
+Proly.app/
+HW3-2/Proly.app/
+
+# Training artifacts
+HW3-2/tensorboard/
+HW3-2/auto_logs/
+HW3-2/models/
+HW3-2/*.zip
+!HW3-2/model.zip
+!HW3-2/best_model.zip
+
+# Local backups
+*backup*.zip
+*backup*.pt
+
+# Submission outputs
+HW3_submission_ready/
+*.zip
