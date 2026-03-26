@@ -32,6 +32,12 @@ class RewardManager:
         2. If the current frame's index > the previous frame's index, it means progress was made. Return a positive reward
         3. If there is no change, return 0.0.
         """
+        if self.prev_observation is None:
+            return 0.0
+        prev_idx = self.prev_observation["last_checkpoint_index"]
+        curr_idx = self.observation["last_checkpoint_index"]
+        if curr_idx > prev_idx:
+            return 50.0
         return 0.0
 
     def calculate_distance_reward(self):
@@ -47,6 +53,14 @@ class RewardManager:
            - If current_distance > prev_distance (getting farther) -> penalize
         3. If the distance hasn't changed, return 0.0.
         """
+        if self.prev_observation is None:
+            return 0.0
+        prev_dist = np.linalg.norm(self.prev_observation["target_position"])
+        curr_dist = np.linalg.norm(self.observation["target_position"])
+        if curr_dist < prev_dist:
+            return 1.0
+        elif curr_dist > prev_dist:
+            return -0.5
         return 0.0
 
     def calculate_survival_reward(self):
@@ -57,6 +71,8 @@ class RewardManager:
         Hints:
         Check if agent's health(agent_health) reaches 0
         """
+        if self.observation["agent_health"] <= 0:
+            return -30.0
         return 0.0
 
     def calculate_reward(self):
@@ -75,7 +91,10 @@ class RewardManager:
         - total_reward (float): The total score for this frame.
         """
         # TODO 6: Complete the reward function
-        return 0.0
+        flag_reward     = self.calculate_flag_capture_reward()
+        distance_reward = self.calculate_distance_reward()
+        survival_reward = self.calculate_survival_reward()
+        return flag_reward + distance_reward + survival_reward
 
 
 class MLPlay:
