@@ -1,0 +1,31 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.typeCheckingMode": "off",
+  "python.analysis.exclude": [
+    "**/HW3/**",
+    "**/HW3-1/**",
+    "**/HW3-2/**",
+    "**/HW3_submission_ready/**"
+  ],
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingTypeStubs": "none",
+    "reportMissingImports": "none",
+    "reportUnusedImport": "none",
+    "reportUnknownParameterType": "none",
+    "reportUnknownMemberType": "none",
+    "reportUnknownVariableType": "none",
+    "reportUnknownArgumentType": "none",
+    "reportMissingParameterType": "none",
+    "reportMissingTypeArgument": "none",
+    "reportOptionalSubscript": "none",
+    "reportOptionalMemberAccess": "none",
+    "reportArgumentType": "none",
+    "reportCallIssue": "none",
+    "reportAttributeAccessIssue": "none",
+    "reportPossiblyUnboundVariable": "none",
+    "reportUnnecessaryComparison": "none",
+    "reportPrivateUsage": "warning",
+    "reportUnusedVariable": "none"
+  }
+}
