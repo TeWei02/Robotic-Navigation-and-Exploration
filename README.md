@@ -5,7 +5,7 @@
 [![Gymnasium](https://img.shields.io/badge/Gymnasium-1-%23008080)](https://gymnasium.farama.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Deep Reinforcement Learning assignments for the **NTHU CS Robotic Navigation and Exploration** course. Implements PPO-based path tracking and RL-based autonomous navigation agents.
+Deep Reinforcement Learning assignments for the **TAICA AI Satellite Course — Robotic Navigation and Exploration**. Implements PPO-based path tracking and RL-based autonomous navigation agents.
 
 ## Contents
 
