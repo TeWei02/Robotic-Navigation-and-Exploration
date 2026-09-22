@@ -6,7 +6,9 @@
  * reference data set (docs/data/reference.json) without a browser, so the claim
  * "the page reproduces the repository" can be verified from a terminal.
  *
- * Run from the repository root, with either runtime:
+ * Run with either runtime (JavaScriptCore resolves paths against the working
+ * directory, so start it from the repository root; Node.js resolves them
+ * against this file):
  *
  *     jsc tools/verify_engine.js      # JavaScriptCore shell (ships with macOS)
  *     node tools/verify_engine.js     # Node.js
@@ -31,14 +33,18 @@ var isNode = typeof process !== "undefined" && process.versions && process.versi
 var readText, report;
 
 if (isNode) {
+  /* Node resolves both the data set and the engine against this file, so the
+   * harness can be started from any working directory. */
   var fs = require("fs");
-  readText = function (path) {
-    return fs.readFileSync(path, "utf8");
+  var path = require("path");
+  var repoRoot = path.join(__dirname, "..");
+  readText = function (rel) {
+    return fs.readFileSync(path.join(repoRoot, rel), "utf8");
   };
   report = function (line) {
     console.log(line);
   };
-  require("./docs/engine.js");
+  require(path.join(repoRoot, "docs", "engine.js"));
 } else {
   load("docs/engine.js");
   readText = readFile;
