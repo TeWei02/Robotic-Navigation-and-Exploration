@@ -56,6 +56,13 @@ trajectory, reward and observation stream against the committed data set. The re
 comparison is shown on the page, and it is the same comparison that `tools/build_web_data.py --check`
 performs in Python.
 
+The two implementations are not bit-identical: the committed episodes are regenerated in Python,
+so `--check` compares a freshly computed run against the stored file and reports `max|Δ| = 0`,
+while the browser port reproduces the same episodes to about `2e-6` in position and on the
+episode return. That residual is double-precision rounding drift between the Python and
+JavaScript arithmetic (the recorded commands, not the trajectory, are what the page replays), and
+the page prints the measured value instead of asserting a fixed one.
+
 Honest scope of the demo:
 
 - The control sequences come from the **deterministic pure-pursuit baseline** in
@@ -109,7 +116,7 @@ randomised control points.
 | State | `(x, y, yaw)`, plus a recorded pose history |
 | Action | One normalised value in `[-1, 1]`, mapped to the yaw rate of the `basic` model; forward speed is fixed at `0.6 × v_range` |
 | Observation (14) | Two previous poses `(x, y, yaw)` — positions divided by 600, yaw in radians — followed by four future waypoints (8 values) spaced 16 path indices apart, starting at the nearest path sample (also divided by 600) |
-| Reward | `0.8·exp(−0.1·d²) + 0.2·exp(−0.1·Δψ²) + progress`, where `d²` is the squared distance to the nearest path sample, `Δψ` the wrapped heading error in degrees against that sample's heading, and `progress ∈ {+0.1, 0, −1.0}` for advancing, stalling and regressing along the path |
+| Reward | `0.8·exp(−0.1·d²) + 0.2·exp(−0.1·Δψ²) + progress`, where `d²` is the squared distance to the nearest path sample, `Δψ` the wrapped heading error in degrees against that sample's heading, folded into `[0, 180]`, and `progress ∈ {+0.1, 0, −1.0}` for advancing, stalling and regressing along the path |
 | Termination | Reaching the final path sample, coming within 10 units of the goal, or 400 steps |
 | Limits | `v_range = 20`, `w_range = 60` (deg/s), `dt = 0.1` s, start pose sampled around `(200, 50)` within ±20 units |
 | Determinism | Path generation and start pose depend on `numpy.random`; a fixed seed reproduces an episode exactly |
@@ -194,13 +201,13 @@ independent checks guard that claim:
 |-------|---------|--------|
 | Data set parity (Python) | `python3 tools/build_web_data.py --check` | all six scenarios rebuild with `max|Δ| = 0` against the committed file |
 | Data set parity (browser) | open the published page | the in-page self-check replays each episode and reports the same comparison |
-| Tests and lint | `python3 -m pytest -q`, `python3 -m ruff check .` | 9 tests pass, lint clean |
+| Tests and lint | `python3 -m pytest -q`, `python3 -m ruff check .` | 11 tests pass, lint clean |
 
 `tests/test_reference_data.py` covers the published data set structure, the honesty of the
-provenance note, determinism of the baseline, the three control modes, and the integrity of the
-published assets (web-app manifest, service-worker cache list, in-page scope notice, absence of
-placeholder text). Continuous integration runs the same commands on every push
-(`.github/workflows/ci.yml`).
+provenance note, the agreement of every stored reward with the documented formula, determinism of
+the baseline, the three control modes, and the integrity of the published assets (web-app
+manifest, service-worker cache list, in-page scope notice, absence of placeholder text).
+Continuous integration runs the same commands on every push (`.github/workflows/ci.yml`).
 
 `ruff` is configured in `pyproject.toml` and deliberately excludes the archived `HW3/` and
 `HW3-1/` course submissions, which are kept in their original form.

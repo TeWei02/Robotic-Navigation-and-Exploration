@@ -126,6 +126,10 @@ def run_scenario(seed, name, mode, description):
 
     state = env.simulator.state
     start = [float(state.x), float(state.y), float(state.yaw)]
+    # ``PathTrackingEnv.reset`` seeds ``last_idx`` with the nearest sample of the
+    # start pose, so the first step's progress term is measured against that
+    # index rather than against sample 0.
+    prev_idx = int(wrapper.PathTracking.utils.search_nearest(path, (start[0], start[1]))[0])
 
     commands = []
     actions = []
@@ -177,7 +181,8 @@ def run_scenario(seed, name, mode, description):
         error_yaw.append(round(float(yaw_err), 6))
         # Mirrors the progress term of PathTrackingEnv.step: +0.1 for advancing one
         # sample, 0 for staying, -1.0 for regressing.
-        diff = 0 if len(min_idx) == 1 else min_idx[-1] - min_idx[-2]
+        diff = min_idx[-1] - prev_idx
+        prev_idx = min_idx[-1]
         progress.append(0.1 if diff > 0 else (0.0 if diff == 0 else -1.0))
         obs.append([round(float(x), 6) for x in state_vec])
         step_index += 1

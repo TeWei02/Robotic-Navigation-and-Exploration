@@ -398,7 +398,14 @@
     var minDistSq = nearest[1];
 
     var target = path[minIdx];
+    /* wrapper.PathTrackingEnv.reward folds the heading error into [0, 180]:
+     * error_yaw = (target_yaw - yaw) % 360, then 360 - error_yaw when it
+     * exceeds 180.  Keeping the folded value is what makes the squared term
+     * behave identically on both sides. */
     var errorYaw = mod360(target[2] - state.yaw);
+    if (errorYaw > 180) {
+      errorYaw = 360 - errorYaw;
+    }
 
     var idxDiff = minIdx - lastIdx;
     var progress;
@@ -429,7 +436,7 @@
       goalDist: goalDist,
       done: done,
       doneReason: reason,
-      heading: errorYaw > 180 ? 360 - errorYaw : errorYaw
+      heading: errorYaw
     };
   }
 
@@ -564,7 +571,10 @@
 
     var state = makeState(scenario);
     var record = [[state.x, state.y, state.yaw]];
-    var lastIdx = 0;
+    /* wrapper.PathTrackingEnv.reset seeds its previous index with the nearest
+     * sample of the start pose, so the first progress term is measured against
+     * that sample rather than against index 0. */
+    var lastIdx = searchNearest(path, [state.x, state.y])[0];
     var rewards = [];
     var trajectory = [];
     var commands = [];

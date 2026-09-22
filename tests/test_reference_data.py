@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import math
 import re
 from pathlib import Path
 
@@ -152,6 +153,20 @@ def test_demo_keeps_its_scope_notice():
     assert "github.com/TeWei02/Robotic-Navigation-and-Exploration" in html
     for asset in ["engine.js", "app.js", "manifest.json"]:
         assert asset in html, f"index.html does not reference {asset}"
+
+
+def test_rewards_follow_documented_formula(dataset):
+    """reward = 0.8*exp(-0.1*d^2) + 0.2*exp(-0.1*psi^2) + progress, psi folded to [0, 180]."""
+    for sc in dataset["scenarios"]:
+        for i, reward in enumerate(sc["rewards"]):
+            expected = (
+                0.8 * math.exp(-0.1 * sc["minDistSq"][i])
+                + 0.2 * math.exp(-0.1 * sc["errorYaw"][i] ** 2)
+                + sc["progress"][i]
+            )
+            assert abs(reward - expected) < 1e-6, f"{sc['id']} step {i}: {reward} != {expected}"
+            folded = 0.0 <= sc["errorYaw"][i] <= 180.0
+            assert folded, f"{sc['id']} step {i}: heading error not folded into [0, 180]"
 
 
 def test_script_and_markup_agree_on_element_ids():
