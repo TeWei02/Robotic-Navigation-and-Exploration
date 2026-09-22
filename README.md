@@ -227,12 +227,13 @@ independent checks guard that claim:
 | Data set parity (Python) | `python3 tools/build_web_data.py --check` | all six scenarios rebuild with `max|Δ| = 0` against the committed file |
 | Data set parity (browser) | open the published page | the in-page self-check replays each episode and reports the same comparison |
 | Published engine parity (offline) | `jsc tools/verify_engine.js` | 6 scenarios replayed and re-driven in the browser engine; worst residual `3.8e-5`, `RESULT: PASS` |
-| Tests and lint | `python3 -m pytest -q`, `python3 -m ruff check .` | 11 tests pass, lint clean |
+| Tests and lint | `python3 -m pytest -q`, `python3 -m ruff check .` | 12 tests pass, lint clean |
 
 `tests/test_reference_data.py` covers the published data set structure, the honesty of the
 provenance note, the agreement of every stored reward with the documented formula, determinism of
 the baseline, the three control modes, and the integrity of the published assets (web-app
-manifest, service-worker cache list, in-page scope notice, absence of placeholder text).
+manifest, service-worker cache list, in-page scope notice, absence of placeholder text), plus that
+`tools/verify_engine.js` still targets the engine revision the page loads.
 Continuous integration runs the same commands on every push (`.github/workflows/ci.yml`).
 
 `ruff` is configured in `pyproject.toml` and deliberately excludes the archived `HW3/` and
