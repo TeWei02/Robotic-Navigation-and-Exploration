@@ -3,7 +3,7 @@
  * The demo has no build step and no third-party requests, so caching the eight
  * entries below is enough to make it work with no network at all.
  */
-const CACHE = "rne-path-tracking-v2";
+const CACHE = "rne-path-tracking-v3";
 const ASSETS = [
   "./",
   "./index.html",

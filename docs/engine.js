@@ -31,7 +31,7 @@
 (function (global) {
   "use strict";
 
-  var ENGINE_VERSION = "1.0.0";
+  var ENGINE_VERSION = "1.1.0";
 
   /* Configuration equivalent to PathTrackingEnv.__init__ + the constants used by
    * the headless reference driver (PathTracking/main.py):
@@ -422,10 +422,12 @@
 
     var goal = [path[path.length - 1][0], path[path.length - 1][1]];
     var goalDist = Math.hypot(state.x - goal[0], state.y - goal[1]);
+    /* Both termination conditions are summarised as "goal", which is what the
+     * reference driver in tools/build_web_data.py records in the published data
+     * set; the episode ends either on the final path sample or inside the goal
+     * tolerance radius. */
     var done = minIdx === path.length - 1 || goalDist < CFG.goalTolerance;
-    var reason = "running";
-    if (minIdx === path.length - 1) reason = "goal";
-    else if (goalDist < CFG.goalTolerance) reason = "goal-tolerance";
+    var reason = done ? "goal" : "running";
 
     return {
       minIdx: minIdx,
@@ -579,6 +581,12 @@
     var trajectory = [];
     var commands = [];
     var observations = [];
+    var minIdxTrace = [];
+    var minDistSqTrace = [];
+    var minDistTrace = [];
+    var errorYawTrace = [];
+    var progressTrace = [];
+    var reasons = [];
     var doneReason = "running";
 
     for (var t = 0; t < limit; t++) {
@@ -596,6 +604,12 @@
       trajectory.push([state.x, state.y, state.yaw, state.v]);
       commands.push(w);
       observations.push(buildObservation(path, record, info.minIdx));
+      minIdxTrace.push(info.minIdx);
+      minDistSqTrace.push(info.minDistSq);
+      minDistTrace.push(Math.sqrt(info.minDistSq));
+      errorYawTrace.push(info.errorYaw);
+      progressTrace.push(info.progress);
+      reasons.push(info.done ? info.doneReason : "running");
 
       doneReason = info.done ? info.doneReason : "running";
       if (info.done) break;
@@ -616,6 +630,12 @@
       commands: commands,
       rewards: rewards,
       observation: observations,
+      minIdx: minIdxTrace,
+      minDistSq: minDistSqTrace,
+      minDist: minDistTrace,
+      errorYaw: errorYawTrace,
+      progress: progressTrace,
+      reasons: reasons,
       doneReason: doneReason,
       totalReward: total
     };

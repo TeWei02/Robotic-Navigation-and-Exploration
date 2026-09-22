@@ -155,6 +155,26 @@ def test_demo_keeps_its_scope_notice():
         assert asset in html, f"index.html does not reference {asset}"
 
 
+def test_offline_harness_targets_the_published_engine():
+    """tools/verify_engine.js must keep checking the published data set.
+
+    The harness is run manually (`jsc tools/verify_engine.js`); this test only
+    guards that it keeps pointing at the two artefacts it compares and that the
+    page still loads the same engine revision it reports.
+    """
+    harness = (ROOT / "tools" / "verify_engine.js").read_text(encoding="utf-8")
+    assert "docs/engine.js" in harness
+    assert "docs/data/reference.json" in harness
+    assert "RESULT: PASS" in harness, "harness does not report a verdict"
+    assert "TOL_STATE" in harness, "harness declares no tolerance for stored numbers"
+
+    engine = (DOCS / "engine.js").read_text(encoding="utf-8")
+    version = re.search(r'ENGINE_VERSION = "([0-9]+\.[0-9]+\.[0-9]+)"', engine)
+    assert version, "engine.js declares no version"
+    assert "engine.js" in (DOCS / "sw.js").read_text(encoding="utf-8")
+    assert "engine.js" in (DOCS / "index.html").read_text(encoding="utf-8")
+
+
 def test_rewards_follow_documented_formula(dataset):
     """reward = 0.8*exp(-0.1*d^2) + 0.2*exp(-0.1*psi^2) + progress, psi folded to [0, 180]."""
     for sc in dataset["scenarios"]:

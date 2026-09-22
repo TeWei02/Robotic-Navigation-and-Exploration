@@ -128,6 +128,10 @@
       }
     }
     state.deviation = dev;
+    // Replay runs reproduce the stored diagnostics exactly; closed-loop runs
+    // compute distance, heading error and progress in the browser, so the
+    // readout follows whichever episode is currently on screen.
+    state.diagnostics = state.result.minDist ? state.result : sc;
     render();
   }
 
@@ -259,6 +263,7 @@
   function renderReadout() {
     var sc = state.scenario;
     var ep = state.result;
+    var diag = state.diagnostics || sc;
     var i = Math.min(state.index, ep.rewards.length - 1);
     var cum = 0;
     for (var k = 0; k <= i; k++) {
@@ -268,9 +273,9 @@
       ["step", (i + 1) + " / " + ep.steps],
       ["cumulative reward", fmt(cum, 2)],
       ["reward of step", fmt(ep.rewards[i], 3)],
-      ["distance to path (min)", fmt(sc.minDist[i], 3)],
-      ["heading error (deg)", fmt(sc.errorYaw[i], 3)],
-      ["progress term", fmt(sc.progress[i], 1)],
+      ["distance to path (min)", fmt(diag.minDist[i], 3)],
+      ["heading error (deg)", fmt(diag.errorYaw[i], 3)],
+      ["progress term", fmt(diag.progress[i], 1)],
       ["episode return", fmt(ep.totalReward, 2)],
       ["termination", ep.doneReason]
     ];
