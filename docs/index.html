@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robotic Navigation and Exploration — path tracking demo</title>
+<meta name="description" content="Browser demo of the path-tracking environment used in the HW3-1 PPO assignment: deterministic pure-pursuit baseline, kinematic vehicle model, reward and observation code ported to JavaScript.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b111c">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+  :root {
+    --bg: #0b111c;
+    --panel: #121a28;
+    --panel-2: #172133;
+    --line: #243149;
+    --ink: #e8eef7;
+    --ink-2: #a7b4c8;
+    --accent: #2fd6c3;
+    --accent-2: #ffb454;
+    --warn: #ffcf6b;
+    --bad: #ff7b8a;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre { font-family: var(--mono); font-size: 13px; }
+  pre {
+    background: #0a0f19;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px 72px; }
+  header.hero { border-bottom: 1px solid var(--line); background: linear-gradient(180deg, #0d1524, #0b111c); }
+  header.hero .wrap { padding-top: 40px; padding-bottom: 34px; }
+  h1 { font-size: 30px; margin: 0 0 8px; letter-spacing: -0.2px; }
+  h2 { font-size: 21px; margin: 40px 0 12px; }
+  h3 { font-size: 16px; margin: 26px 0 8px; }
+  p { margin: 10px 0; color: var(--ink-2); }
+  .lede { font-size: 16px; max-width: 760px; }
+  .badges { margin: 16px 0 18px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .badges span {
+    font-size: 12px; border: 1px solid var(--line); border-radius: 999px;
+    padding: 3px 10px; color: var(--ink-2); background: var(--panel);
+  }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; }
+  .links a {
+    display: inline-block; padding: 8px 14px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-size: 14px;
+  }
+  .links a.primary { background: var(--accent); border-color: var(--accent); color: #06231f; font-weight: 600; }
+  .links a:hover { text-decoration: none; border-color: var(--accent); }
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 18px 20px; margin: 18px 0;
+  }
+  .card.notice { border-color: #4d4222; background: #1b1a12; }
+  .card.notice h3 { color: var(--warn); margin-top: 0; }
+  .grid { display: grid; grid-template-columns: 620px 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } }
+  canvas { border: 1px solid var(--line); border-radius: 10px; display: block; max-width: 100%; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  button.tab, button.ctl, select {
+    font: inherit; font-size: 13px; color: var(--ink); background: var(--panel-2);
+    border: 1px solid var(--line); border-radius: 7px; padding: 6px 12px; cursor: pointer;
+  }
+  button.tab.active { background: var(--accent); border-color: var(--accent); color: #06231f; font-weight: 600; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+  input[type=range] { flex: 1 1 200px; accent-color: var(--accent); }
+  .readout { margin-top: 6px; }
+  .row {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 5px 0; border-bottom: 1px dashed var(--line); font-size: 13px;
+  }
+  .row:last-child { border-bottom: 0; }
+  .row span { color: var(--ink-2); }
+  .row b { font-family: var(--mono); font-weight: 500; }
+  .muted { color: var(--ink-2); }
+  .small { font-size: 12px; }
+  #status { font-size: 13px; color: var(--ink-2); font-family: var(--mono); }
+  #status.ok { color: var(--accent); }
+  #status.bad { color: var(--bad); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 12px 0; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--ink-2); font-weight: 600; }
+  td code { color: var(--accent); }
+  ul { color: var(--ink-2); }
+  li { margin: 5px 0; }
+  footer { border-top: 1px solid var(--line); margin-top: 44px; padding-top: 18px; font-size: 13px; color: var(--ink-2); }
+  .kv { font-family: var(--mono); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Robotic Navigation and Exploration</h1>
+    <p class="lede">
+      Deep reinforcement learning for robot path tracking and navigation — the HW3 assignment set of the
+      TAICA AI Satellite Course. The page below is a self-contained, offline-capable demo of the
+      <b>path-tracking environment</b> from HW3-1: the same vehicle model, reward function, observation
+      layout and steering controller that the repository uses for training and evaluation.
+    </p>
+    <div class="badges">
+      <span>Python 3.10+</span><span>PyTorch 2.x</span><span>Gymnasium</span>
+      <span>PPO</span><span>NumPy</span><span>MIT License</span>
+    </div>
+    <div class="links">
+      <a class="primary" href="https://github.com/TeWei02/Robotic-Navigation-and-Exploration">Source repository</a>
+      <a href="../HW3/report_4b4g0077_HW3-1.pdf">HW3-1 report (PDF)</a>
+      <a href="../HW3/report_4b4g0077_HW3-2.pdf">HW3-2 report (PDF)</a>
+      <a href="../HW3/report_4b4g0077.md">Report source (Markdown)</a>
+      <a href="../LICENSE">License</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card notice">
+    <h3>Scope and status — please read before interpreting the demo</h3>
+    <ul>
+      <li>The interactive demo reproduces the <b>deterministic pure-pursuit baseline</b>
+        (<code>HW3-1/PathTracking/pure_pursuit.py</code>), not a trained PPO policy. The trained checkpoint
+        (<code>HW3-1/save/model.pt</code>) is <b>not distributed with this repository</b>, so no learned
+        weights can be loaded here.</li>
+      <li>The recorded traces in <code>data/reference.json</code> are generated by
+        <code>tools/build_web_data.py</code> from the repository's own simulator, and are tagged in the file
+        itself with the same caveat (<code>meta.note</code>).</li>
+      <li>HW3-2 (<i>Proly</i> navigation) depends on an external macOS application and on the RL checkpoints
+        produced during training; neither is included. Its reward function, curriculum launcher and
+        evaluation scripts are readable in the repository, but they cannot be executed from a clean clone.</li>
+      <li><code>HW3-2/champion_stats.csv</code> is a per-tick telemetry log written while a champion model
+        played against that external application; it was recorded with an earlier revision of
+        <code>champion_play.py</code> and <b>cannot be regenerated</b> here. It is raw telemetry, not a
+        summarised experimental result.</li>
+      <li>Training numbers quoted anywhere in this page are those already recorded in the course report
+        (<code>HW3/report_4b4g0077.md</code> and the PDFs), reproduced with attribution. They were not
+        re-measured for this page, and no new measurements, subject counts or statistics have been invented.</li>
+    </ul>
+  </div>
+
+  <h2>Interactive path-tracking demo</h2>
+  <p>
+    Select an episode, then play it back. Six scenarios exercise the same controller under different regimes:
+    nominal tracking, a high-curvature arc, an offset start pose that forces convergence, injected steering
+    bias (off-path segments), and a saturated-turn recovery run that covers the negative branch of the
+    progress reward.
+  </p>
+
+  <div class="grid">
+    <div>
+      <div class="tabs" id="scenarios"></div>
+      <canvas id="canvas" width="600" height="600"></canvas>
+      <div class="controls">
+        <button class="ctl" id="play">Play</button>
+        <button class="ctl" id="step">Step</button>
+        <button class="ctl" id="reset">Reset</button>
+        <input type="range" id="scrub" min="0" max="100" value="0">
+        <select id="speed">
+          <option value="0.5">0.5×</option>
+          <option value="1">1×</option>
+          <option value="2" selected>2×</option>
+          <option value="4">4×</option>
+        </select>
+      </div>
+      <div class="controls">
+        <select id="mode">
+          <option value="ref" selected>Replay recorded commands</option>
+          <option value="loop">Closed loop (controller in browser)</option>
+        </select>
+        <span class="muted small" id="deviation"></span>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div id="scenarioInfo"></div>
+        <div class="readout" id="readout"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Browser / Python parity</h3>
+        <div class="readout" id="parity"></div>
+      </div>
+      <div class="card">
+        <div id="status">initialising…</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">What “replay” and “closed loop” mean</h3>
+    <p>
+      <b>Replay</b> feeds the steering commands stored by the Python run into the browser-side vehicle model.
+      Since those commands are part of the published data set, the resulting trajectory, reward sequence and
+      observation vectors can be compared element by element against the reference — the table on the right
+      reports the worst deviation measured in this browser session.
+    </p>
+    <p>
+      <b>Closed loop</b> instead recomputes the steering command in the browser at every step from the current
+      pose, using the same pure-pursuit definition (nearest path sample, arc-length look-ahead of 30 units,
+      curvature <span class="kv">κ = 2·sin(α)/L<sub>d</sub></span>). Only the path and the start pose come from
+      the data set, so this mode exercises controller, vehicle dynamics, reward and observation together.
+    </p>
+  </div>
+
+  <h2>Environment summary</h2>
+  <table>
+    <tr><th>Element</th><th>Definition</th></tr>
+    <tr>
+      <td>Vehicle model</td>
+      <td><code>Simulation/simulator_basic.py</code> — constant forward speed
+        (<span class="kv">v = 0.6 · v_range = 12</span> units/s), steering command applied as a heading
+        increment with a one-step lag, workspace 600 × 600, <span class="kv">dt = 0.1 s</span>. Bicycle and
+        differential-drive variants are also implemented.</td>
+    </tr>
+    <tr>
+      <td>Action space</td>
+      <td>One continuous steering-rate command in <span class="kv">[−60, +60] deg/s</span>.</td>
+    </tr>
+    <tr>
+      <td>Observation (14)</td>
+      <td>Two previous poses (x, y, yaw — 6 values; x and y divided by 600, yaw converted to radians)
+        followed by four future waypoints (8 values) spaced 16 path indices apart, starting at the
+        nearest path sample (also divided by 600).</td>
+    </tr>
+    <tr>
+      <td>Reward</td>
+      <td><span class="kv">0.8·exp(−0.1·d²) + 0.2·exp(−0.1·Δψ²) + progress</span>, where
+        <span class="kv">d²</span> is the squared distance to the nearest path sample,
+        <span class="kv">Δψ</span> the wrapped heading error in degrees against that sample’s heading, and
+        <span class="kv">progress ∈ {+0.1, 0, −1.0}</span> rewards advancing along the path, ignores standing
+        still and penalises moving backwards.</td>
+    </tr>
+    <tr>
+      <td>Termination</td>
+      <td>Reaching the final path sample, or coming within the goal tolerance (10 units) of it, or exceeding
+        the 400-step cap.</td>
+    </tr>
+    <tr>
+      <td>Controller used for the demo</td>
+      <td><code>HW3-1/PathTracking/pure_pursuit.py</code> — geometric look-ahead tracker, deterministic for a
+        given path and start pose (no learning involved).</td>
+    </tr>
+  </table>
+
+  <h2>Reproduce locally</h2>
+  <p>Everything on this page is generated from repository code; nothing is hand-authored data.</p>
+<pre>git clone https://github.com/TeWei02/Robotic-Navigation-and-Exploration
+cd Robotic-Navigation-and-Exploration
+python3 -m pip install -r requirements.txt
+
+# rebuild and verify the published data set (compares against a live Python run)
+python3 tools/build_web_data.py
+python3 tools/build_web_data.py --check
+
+# run the pure-pursuit baseline against the HW3-1 environment
+python3 - &lt;&lt;'PY'
+import numpy as np, sys
+sys.path.insert(0, "HW3-1")
+import wrapper
+from PathTracking.pure_pursuit import PurePursuitController
+
+np.random.seed(1)
+env = wrapper.PathTrackingEnv()
+ctrl = PurePursuitController(lookahead=30.0, v=12.0, w_range=60.0)
+ctrl.set_path(env.path)
+
+total = 0.0
+for _ in range(400):
+    _, w = ctrl.command(env.simulator.state.pose())
+    _, reward, done, _ = env.step(np.array([w / 60.0]))
+    total += reward
+    if done:
+        break
+print("return =", round(total, 3))
+PY
+
+# tests (data set + determinism)
+python3 -m pytest -q
+
+# PPO training (PyTorch + GPU recommended; writes weight files that are not
+# distributed with this repository)
+cd HW3-1 &amp;&amp; python3 train.py</pre>
+
+  <h2>Assignment parts</h2>
+  <table>
+    <tr><th>Part</th><th>Content</th><th>Status</th></tr>
+    <tr>
+      <td><code>HW3-1</code></td>
+      <td>PPO path tracking: PolicyNet / ValueNet, <code>EnvRunner</code> with GAE, clipped surrogate
+        objective, kinematic simulators, reward engineering. Course TODOs 1–4 are implemented in
+        <code>model.py</code>, <code>multi_env.py</code> and <code>agent.py</code>.</td>
+      <td>Code complete and runnable; the training checkpoint and training curves are not in the repository.
+        The demo here therefore uses the pure-pursuit baseline.</td>
+    </tr>
+    <tr>
+      <td><code>HW3-2</code></td>
+      <td><i>Proly</i> RL navigation: flag-capture / distance / survival reward composition, curriculum
+        launcher, champion evaluation (TODO 6).</td>
+      <td>Reward and launcher code complete, but execution requires an external macOS application and trained
+        checkpoints that are not distributed. Reported scores come from the course report only.</td>
+    </tr>
+    <tr>
+      <td><code>HW3/</code></td>
+      <td>The original submission archive: report source and the two report PDFs.</td>
+      <td>Unmodified archival copy.</td>
+    </tr>
+  </table>
+
+  <h2>Repository layout</h2>
+  <table>
+    <tr><th>Path</th><th>Purpose</th></tr>
+    <tr><td><code>HW3-1/</code></td><td>Path-tracking project: environment wrapper, simulators, spline path
+      generation, PPO agent, training entry point.</td></tr>
+    <tr><td><code>HW3-1/PathTracking/pure_pursuit.py</code></td><td>Deterministic look-ahead controller used by
+      this demo and by the reference data generator.</td></tr>
+    <tr><td><code>HW3-2/</code></td><td><i>Proly</i> navigation: reward functions, curriculum shell launcher,
+      champion playback and evaluation.</td></tr>
+    <tr><td><code>tools/build_web_data.py</code></td><td>Generates <code>docs/data/reference.json</code> from
+      the repository's own simulator; <code>--check</code> re-runs the environment and compares every stored
+      field.</td></tr>
+    <tr><td><code>docs/</code></td><td>This static demo (<code>index.html</code>, <code>app.js</code>,
+      <code>engine.js</code> — a JavaScript port of the environment — plus the data set, a service worker and a
+      web-app manifest for offline use).</td></tr>
+    <tr><td><code>tests/</code></td><td><code>pytest</code> suite: verifies the published data set and the
+      determinism of the baseline controller.</td></tr>
+  </table>
+
+  <h2>Limitations</h2>
+  <ul>
+    <li>Only the HW3-1 path-tracking task is demonstrated interactively; HW3-2 cannot be reproduced without the
+      external application.</li>
+    <li>The browser engine is a faithful port for the paths and controllers published here, but it is not a
+      general-purpose simulator replacement — PPO training still runs in Python.</li>
+    <li>Reported training returns and scores are quoted from the course report; they were not re-run for this
+      page.</li>
+  </ul>
+
+  <footer>
+    <p>
+      Author: Te-Wei Ko · MIT License ·
+      <a href="https://github.com/TeWei02/Robotic-Navigation-and-Exploration">github.com/TeWei02/Robotic-Navigation-and-Exploration</a>
+    </p>
+    <p class="small">
+      The demo runs entirely in the browser from files in this directory; no external scripts, fonts or
+      third-party services are loaded. Installable as an offline web app
+      (<a href="manifest.json">manifest</a>).
+    </p>
+  </footer>
+</div>
+
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

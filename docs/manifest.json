@@ -1,0 +1,24 @@
+{
+  "name": "Robotic Navigation and Exploration — Path Tracking Demo",
+  "short_name": "Path Tracking",
+  "description": "Offline-capable browser demo of the HW3-1 path-tracking environment: kinematic vehicle model, pure-pursuit baseline, reward and observation code ported from the repository's Python implementation.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b111c",
+  "theme_color": "#0b111c",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

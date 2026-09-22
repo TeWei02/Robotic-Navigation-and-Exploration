@@ -1,0 +1,11 @@
+# Runtime dependencies of the environment and of the reference data generator
+# (tools/build_web_data.py, which imports the HW3-1 simulator modules).
+# opencv-python-headless is required because Simulation/ imports cv2 at module
+# level, even though no image is rendered while running the environment.
+numpy>=1.24
+opencv-python-headless>=4.8
+
+# Not required by the demo or by the environment:
+#   torch, gymnasium, matplotlib  -> needed only to train/evaluate the PPO agent
+#                                    (HW3-1/train.py, HW3-1/eval_score_check.py)
+# The static demo in docs/ has no Python dependencies at all.

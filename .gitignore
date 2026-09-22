@@ -30,3 +30,7 @@ HW3-2/*.zip
 # Submission outputs
 HW3_submission_ready/
 *.zip
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
