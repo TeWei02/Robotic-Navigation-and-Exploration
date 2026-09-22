@@ -154,6 +154,16 @@ def test_demo_keeps_its_scope_notice():
         assert asset in html, f"index.html does not reference {asset}"
 
 
+def test_script_and_markup_agree_on_element_ids():
+    """Every element app.js looks up must exist in index.html."""
+    html = (DOCS / "index.html").read_text(encoding="utf-8")
+    script = (DOCS / "app.js").read_text(encoding="utf-8")
+    present = set(re.findall(r'id="([^"]+)"', html))
+    wanted = set(re.findall(r'getElementById\("([^"]+)"\)', script))
+    assert wanted, "app.js looks up no elements"
+    assert wanted <= present, f"missing elements in index.html: {sorted(wanted - present)}"
+
+
 def test_demo_has_no_placeholder_text():
     for name in ["index.html", "app.js", "engine.js"]:
         text = (DOCS / name).read_text(encoding="utf-8").lower()
