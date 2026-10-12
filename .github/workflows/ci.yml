@@ -22,5 +22,9 @@ jobs:
         run: ruff check .
       - name: Verify the published reference data set
         run: python3 tools/build_web_data.py --check
+      - name: Baseline benchmark guard
+        # 掃描前瞻距離，並確認 Ld = 30 那一列與已發佈的 reference.json 逐欄相符。
+        # 純 numpy、無隨機性，所以結果是確定的，可以放在 CI 裡斷言。
+        run: python3 tools/benchmark.py --stdout > /dev/null
       - name: Test with pytest
         run: pytest --tb=short

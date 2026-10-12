@@ -215,6 +215,61 @@ Trajectories, observations, rewards and per-step counters for all six scenarios 
 [`docs/data/reference.json`](docs/data/reference.json) and printed by
 `python3 tools/build_web_data.py --check`. The file, not this table, is the source of truth.
 
+### Look-ahead benchmark (baseline sensitivity)
+
+The table above is one fixed configuration, and it says so: it is *not a
+benchmark*. `tools/benchmark.py` turns it into one in the only way that is honest
+while the PPO checkpoints stay unavailable — it holds everything else fixed and
+sweeps the baseline's single parameter, the look-ahead distance `Ld`, across the
+same six scenarios:
+
+```
+python3 tools/benchmark.py            # writes docs/data/benchmark.json
+```
+
+It imports `tools/build_web_data.py` and patches its module-level `LOOKAHEAD`, so
+every row runs the **identical** episode loop, reward function and termination
+rules as the published runs. No part of the loop is re-implemented here. As a
+guard, the sweep includes `Ld = 30` and every field of that row is compared
+against `docs/data/reference.json`; the tool exits non-zero if they disagree.
+
+| `Ld` | Goal rate | Mean return | Mean deviation | Worst deviation | Mean steps |
+|-----:|----------:|------------:|---------------:|----------------:|-----------:|
+| 2 | 83% | 139.22 | 4.429 | 47.245 | 366.2 |
+| **5** | 83% | **287.04** | **2.163** | 47.245 | 326.7 |
+| 10 | 83% | 275.86 | 2.337 | 47.245 | 325.2 |
+| 15 | 83% | 254.46 | 2.737 | 47.245 | 324.5 |
+| 20 | 83% | 238.38 | 3.339 | 47.245 | 324.8 |
+| 25 | 83% | 227.44 | 4.137 | 47.245 | 325.8 |
+| 30 *(published)* | 83% | 216.59 | 5.020 | 47.245 | 327.2 |
+| 40 | 83% | 190.25 | 6.853 | 54.291 | 331.5 |
+| 60 | 83% | 117.25 | 11.389 | 80.517 | 330.3 |
+| 80 | 83% | 66.62 | 17.246 | 108.009 | 323.7 |
+
+What it shows, including the part that is unflattering to this repository:
+
+- **The published baseline is not a good operating point.** `Ld = 30` returns
+  216.59 with a mean deviation of 5.02; `Ld = 5` returns **287.04** with a mean
+  deviation of **2.16**. The published configuration gives up roughly a third of
+  the return and tracks more than twice as loosely as the best point in the
+  sweep. Nothing is broken — the value was carried over from the course
+  submission and never tuned — but it should not be read as a tuned baseline.
+- **The response is not monotone.** Return peaks near `Ld = 5` and collapses at
+  `Ld = 2` (139.22), so there is a genuine optimum rather than "shorter is
+  better". The sweep brackets the optimum between 2 and 10; it does not resolve
+  it further.
+- **Goal rate is not a useful metric here.** It is 83% at every look-ahead,
+  because the `recovery` scenario runs to the step limit in all ten
+  configurations. Return and tracking deviation discriminate; success rate does
+  not.
+- **The worst case degrades sharply past `Ld = 30`** — 47.245 up to 30, then
+  54.29 at 40, 80.52 at 60 and 108.01 at 80 — while it stays flat across the
+  whole lower half of the sweep. That is another sign that 30 sits on the wrong
+  side of the optimum.
+
+This characterises the classical baseline only. It is **not** a comparison
+against the PPO policy.
+
 ---
 
 ## Reproducibility and verification
@@ -228,6 +283,7 @@ independent checks guard that claim:
 | Data set parity (browser) | open the published page | the in-page self-check replays each episode and reports the same comparison |
 | Published engine parity (offline) | `jsc tools/verify_engine.js` | 6 scenarios replayed and re-driven in the browser engine; worst residual `3.8e-5`, `RESULT: PASS` |
 | Tests and lint | `python3 -m pytest -q`, `python3 -m ruff check .` | 12 tests pass, lint clean |
+| Baseline benchmark guard | `python3 tools/benchmark.py` | the `Ld = 30` rows reproduce every field of `reference.json` exactly; 10 look-ahead settings x 6 scenarios |
 
 `tests/test_reference_data.py` covers the published data set structure, the honesty of the
 provenance note, the agreement of every stored reward with the documented formula, determinism of
