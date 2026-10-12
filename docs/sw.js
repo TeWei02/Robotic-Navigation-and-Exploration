@@ -1,16 +1,18 @@
 /* Offline shell for the path-tracking demo.
  *
- * The demo has no build step and no third-party requests, so caching the eight
+ * The demo has no build step and no third-party requests, so caching the ten
  * entries below is enough to make it work with no network at all.
  */
-const CACHE = "rne-path-tracking-v3";
+const CACHE = "rne-path-tracking-v4";
 const ASSETS = [
   "./",
   "./index.html",
   "./app.js",
   "./engine.js",
+  "./benchmark.js",
   "./manifest.json",
   "./data/reference.json",
+  "./data/benchmark.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
 ];

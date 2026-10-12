@@ -41,6 +41,7 @@ DEMO_FILES = [
     "index.html",
     "app.js",
     "engine.js",
+    "benchmark.js",
     "manifest.json",
     "sw.js",
     "icons/icon-192.png",
@@ -190,17 +191,25 @@ def test_rewards_follow_documented_formula(dataset):
 
 
 def test_script_and_markup_agree_on_element_ids():
-    """Every element app.js looks up must exist in index.html."""
+    """Every element a published script looks up must exist in index.html."""
     html = (DOCS / "index.html").read_text(encoding="utf-8")
-    script = (DOCS / "app.js").read_text(encoding="utf-8")
     present = set(re.findall(r'id="([^"]+)"', html))
-    wanted = set(re.findall(r'getElementById\("([^"]+)"\)', script))
-    assert wanted, "app.js looks up no elements"
-    assert wanted <= present, f"missing elements in index.html: {sorted(wanted - present)}"
+    for name in ["app.js", "benchmark.js"]:
+        script = (DOCS / name).read_text(encoding="utf-8")
+        wanted = set(re.findall(r'getElementById\("([^"]+)"\)', script))
+        assert wanted, f"{name} looks up no elements"
+        assert wanted <= present, f"missing elements in index.html: {sorted(wanted - present)}"
+
+
+def test_benchmark_panel_reads_the_benchmark_data():
+    """The panel must load the file tools/benchmark.py writes, and it must exist."""
+    script = (DOCS / "benchmark.js").read_text(encoding="utf-8")
+    assert "data/benchmark.json" in script, "benchmark.js does not load the benchmark data"
+    assert (DOCS / "data" / "benchmark.json").is_file(), "docs/data/benchmark.json is missing"
 
 
 def test_demo_has_no_placeholder_text():
-    for name in ["index.html", "app.js", "engine.js"]:
+    for name in ["index.html", "app.js", "engine.js", "benchmark.js"]:
         text = (DOCS / name).read_text(encoding="utf-8").lower()
         for token in ["fixme", "lorem ipsum", "placeholder", "your text here", "sample text"]:
             assert token not in text, f"docs/{name} still contains {token!r}"
