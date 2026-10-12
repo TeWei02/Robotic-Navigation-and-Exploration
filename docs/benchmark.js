@@ -166,10 +166,12 @@
       " at a mean return of " + best.meanReturn.toFixed(2) + " and a mean deviation of " +
       best.meanMeanMinDist.toFixed(3) + ".";
     if (published && published !== best) {
-      var gain = ((best.meanReturn / published.meanReturn - 1) * 100).toFixed(0);
+      // Report the shortfall of the published value against the best measured
+      // one, not the other way round: "33% lower" would be the wrong direction.
+      var shortfall = ((1 - published.meanReturn / best.meanReturn) * 100).toFixed(0);
       text += " The published configuration, Ld = " + published.lookahead + ", returns " +
         published.meanReturn.toFixed(2) + " at a mean deviation of " + published.meanMeanMinDist.toFixed(3) +
-        " — " + gain + "% lower return and " +
+        " — " + shortfall + "% lower return than that and " +
         (published.meanMeanMinDist / best.meanMeanMinDist).toFixed(1) +
         "x the tracking deviation.";
     }

@@ -250,9 +250,9 @@ What it shows, including the part that is unflattering to this repository:
 
 - **The published baseline is not a good operating point.** `Ld = 30` returns
   216.59 with a mean deviation of 5.02; `Ld = 5` returns **287.04** with a mean
-  deviation of **2.16**. The published configuration gives up roughly a third of
-  the return and tracks more than twice as loosely as the best point in the
-  sweep. Nothing is broken — the value was carried over from the course
+  deviation of **2.16**. The published configuration gives up about a quarter of
+  the return (216.59 against 287.04) and tracks more than twice as loosely as the
+  best point in the sweep. Nothing is broken — the value was carried over from the course
   submission and never tuned — but it should not be read as a tuned baseline.
 - **The response is not monotone.** Return peaks near `Ld = 5` and collapses at
   `Ld = 2` (139.22), so there is a genuine optimum rather than "shorter is
