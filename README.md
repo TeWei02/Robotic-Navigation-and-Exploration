@@ -1,5 +1,7 @@
 # Robotic Navigation and Exploration
 
+**Language:** [![中文](https://img.shields.io/badge/%E4%B8%AD%E6%96%87-%E4%B8%AD%E6%96%87%E7%89%88-blue?style=flat-square)](README.md) [![English](https://img.shields.io/badge/English-English-blue?style=flat-square)](README.en.md)
+
 [![Live demo](https://img.shields.io/badge/live%20demo-GitHub%20Pages-2ea44f)](https://tewei02.github.io/Robotic-Navigation-and-Exploration/)
 [![CI](https://github.com/TeWei02/Robotic-Navigation-and-Exploration/actions/workflows/ci.yml/badge.svg)](https://github.com/TeWei02/Robotic-Navigation-and-Exploration/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-%233776AB?logo=python)](https://www.python.org/)
